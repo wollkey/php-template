@@ -1,0 +1,15 @@
+# Environment
+.env.local
+.env.*.local
+
+# Composer
+/vendor/
+
+# Cache and logs
+/var
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea
