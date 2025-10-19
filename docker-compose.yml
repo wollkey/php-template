@@ -1,0 +1,80 @@
+services:
+    php:
+        build:
+            context: .
+            dockerfile: .docker/php/Dockerfile
+            target: development
+        container_name: php-backend
+        working_dir: /var/www
+        volumes:
+            - .:/var/www
+        environment:
+            - APP_ENV=${APP_ENV:-dev}
+            - DATABASE_URL=${DATABASE_URL:-postgresql://app:secret@postgres:5432/app_db}
+            - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+        depends_on:
+            - postgres
+            - redis
+        networks:
+            - backend
+
+    caddy:
+        image: caddy:2.7-alpine
+        container_name: caddy-server
+        ports:
+            - "${HTTP_PORT:-8000}:80"
+            - "${HTTPS_PORT:-8443}:443"
+        volumes:
+            - ./public:/var/www/public
+            - ./.docker/caddy/Caddyfile:/etc/caddy/Caddyfile
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            - php
+        networks:
+            - backend
+
+    postgres:
+        image: postgres:16-alpine
+        container_name: postgres-db
+        environment:
+            POSTGRES_DB: ${DB_NAME:-app_db}
+            POSTGRES_USER: ${DB_USER:-app}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        ports:
+            - "${DB_PORT:-5432}:5432"
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    redis:
+        image: redis:7-alpine
+        container_name: redis-cache
+        command: redis-server --appendonly yes
+        volumes:
+            - redis_data:/data
+        ports:
+            - "${REDIS_PORT:-6379}:6379"
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+volumes:
+    postgres_data:
+    redis_data:
+    caddy_data:
+    caddy_config:
+
+networks:
+    backend:
+        driver: bridge

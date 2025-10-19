@@ -1,0 +1,45 @@
+{
+    auto_https off
+}
+
+:80 {
+    root * /var/www/public
+
+    @cors_preflight {
+        method OPTIONS
+    }
+
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin "*"
+        header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization"
+        header Access-Control-Max-Age "3600"
+        respond 204
+    }
+
+    header Access-Control-Allow-Origin "*"
+    header Access-Control-Allow-Credentials "true"
+
+    encode gzip
+
+    try_files {path} {path}/ /index.php?{query}
+
+    php_fastcgi php:9000
+
+    @hidden {
+        path */.*
+    }
+    respond @hidden 404
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}

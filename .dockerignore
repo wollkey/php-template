@@ -1,0 +1,6 @@
+vendor/
+tests/
+.git/
+.github/
+.gitignore
+.editorconfig
