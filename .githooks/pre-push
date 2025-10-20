@@ -2,9 +2,6 @@
 
 echo "Running code quality checks before push..."
 
-# Ensure we're not in Docker for pre-push checks
-export CI=true
-
 make check
 
 if [ $? -ne 0 ]; then
