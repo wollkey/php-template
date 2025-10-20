@@ -139,11 +139,15 @@ composer-audit: ## Check for security vulnerabilities
 	$(PHP) composer audit
 .PHONY: composer-audit
 
+composer-unused: ## Check for security vulnerabilities
+	$(PHP) vendor/bin/composer-unused
+.PHONY: composer-unused
+
 composer-outdated: ## Show outdated packages
 	$(PHP) composer outdated --direct
 .PHONY: composer-outdated
 
-composer-check: composer-validate composer-audit ## Run all composer checks
+composer-check: composer-validate composer-audit composer-unused ## Run all composer checks
 	@echo -e "$(GREEN)✓ Composer checks passed$(RESET)"
 .PHONY: composer-check
 
