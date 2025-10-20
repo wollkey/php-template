@@ -8,20 +8,12 @@ SHELL := /bin/bash
 DC := docker compose
 
 # PHP execution modes
-PHP := $(DC) exec -e XDEBUG_MODE=off php
-PHP_NO_TTY := $(DC) exec -T -e XDEBUG_MODE=off php
-
-# Auto-detect CI environment and use non-TTY mode
 ifdef CI
-    PHP := $(PHP_NO_TTY)
-endif
-
-# Debug mode - enable Xdebug when 'debug' is in command
-# Usage: make debug test
-ifneq (,$(findstring debug,$(MAKECMDGOALS)))
-    PHP := $(subst -e XDEBUG_MODE=off ,,$(PHP))
-    PHP_NO_TTY := $(subst -e XDEBUG_MODE=off ,,$(PHP_NO_TTY))
-    $(eval debug:;@:)
+    PHP := php
+    COMPOSER := composer
+else
+    PHP := $(DC) exec -T php
+    COMPOSER := $(DC) exec -T composer
 endif
 
 # Colors for better readability
