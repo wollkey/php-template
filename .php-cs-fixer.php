@@ -12,5 +12,4 @@ return new PhpCsFixer\Config()
     ])
     ->setFinder($finder)
     ->setCacheFile(__DIR__.'/var/.php-cs-fixer.cache')
-    ->setIndent("\t")
-    ->setLineEnding("\r\n");
+    ->setIndent("\t");

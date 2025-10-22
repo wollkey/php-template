@@ -15,11 +15,10 @@ final readonly class Application
 
 		$logFile = "$dir/test.log";
 		$logMessage = sprintf(
-            "%s  - Test log entry from user %s\nEnv: %s\n",
-            date('Y-m-d H:i:s'),
-            get_current_user(),
-            $_ENV['APP_ENV'],
-        );
+			"%s  - Test log entry from user %s\n",
+			date('Y-m-d H:i:s'),
+			get_current_user(),
+		);
 
 		false !== file_put_contents($logFile, $logMessage, FILE_APPEND);
 	}

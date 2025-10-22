@@ -7,22 +7,23 @@ SHELL := /bin/bash
 # Docker compose command setup
 DC := docker compose
 
-# PHP execution modes
-PHP := $(DC) exec -e XDEBUG_MODE=off php
-PHP_NO_TTY := $(DC) exec -T -e XDEBUG_MODE=off php
+# Detect if xdebug should be enabled
+DISABLE_XDEBUG := -e XDEBUG_MODE=off
+ifeq (debug,$(findstring debug,$(MAKECMDGOALS)))
+    DISABLE_XDEBUG :=
+endif
 
-# Auto-detect CI environment and use non-TTY mode
 ifdef CI
-    PHP := $(PHP_NO_TTY)
+    PHP := php
+    COMPOSER := composer
+else
+    PHP := $(DC) exec -T $(DISABLE_XDEBUG) php
+    COMPOSER := $(PHP) composer
 endif
 
-# Debug mode - enable Xdebug when 'debug' is in command
-# Usage: make debug test
-ifneq (,$(findstring debug,$(MAKECMDGOALS)))
-    PHP := $(subst -e XDEBUG_MODE=off ,,$(PHP))
-    PHP_NO_TTY := $(subst -e XDEBUG_MODE=off ,,$(PHP_NO_TTY))
-    $(eval debug:;@:)
-endif
+debug: ## Enable xdebug for next command (usage: make debug test)
+	@:
+.PHONY: debug
 
 # Colors for better readability
 GREEN  := \033[0;32m
@@ -53,12 +54,12 @@ setup: ## Initial project setup
 .PHONY: setup
 
 install: ## Install all dependencies
-	$(PHP) composer install
+	$(COMPOSER) install
 	@echo -e "$(GREEN)✓ Dependencies installed$(RESET)"
 .PHONY: install
 
 update: ## Update dependencies
-	$(PHP) composer update
+	$(COMPOSER) update
 	@echo -e "$(GREEN)✓ Dependencies updated$(RESET)"
 .PHONY: update
 
@@ -132,19 +133,19 @@ rector-check: ## Check Rector rules (dry run)
 .PHONY: rector-check
 
 composer-validate: ## Validate composer.json
-	$(PHP) composer validate --strict
+	$(COMPOSER) validate --strict
 .PHONY: composer-validate
 
 composer-audit: ## Check for security vulnerabilities
-	$(PHP) composer audit
+	$(COMPOSER) audit
 .PHONY: composer-audit
 
-composer-unused: ## Check for security vulnerabilities
+composer-unused: ## Check for unused dependencies
 	$(PHP) vendor/bin/composer-unused
 .PHONY: composer-unused
 
 composer-outdated: ## Show outdated packages
-	$(PHP) composer outdated --direct
+	$(COMPOSER) outdated --direct
 .PHONY: composer-outdated
 
 composer-check: composer-validate composer-audit composer-unused ## Run all composer checks
@@ -212,7 +213,7 @@ info: ## Show project information
 	@$(PHP) php -v | head -n 1
 	@echo ""
 	@echo "Composer version:"
-	@$(PHP) composer --version
+	@$(COMPOSER) --version
 .PHONY: info
 
 php-version: ## Show PHP version
