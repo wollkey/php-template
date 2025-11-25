@@ -66,21 +66,26 @@ jobs:
           script: |
             set -e  # Exit on any error
 
-            APP_DIR="/var/www/php-template"
-            cd ${APP_DIR}
+            cd /var/www/php-template
 
             echo "🚀 Starting deployment..."
 
             # Login to GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Pull latest image
+            # Stop and remove old container
+            docker stop php-template-app || true
+            docker rm php-template-app || true
+
+            # Pull and run new container
             echo "⬇️  Pulling new image..."
-            docker compose pull app
-
-            # Recreate only app container
-            echo "🔄 Recreating app container..."
-            docker compose up -d --force-recreate app
+            docker pull ghcr.io/${{ github.repository }}:latest
+            docker run -d \
+            --name php-template-app \
+            --restart unless-stopped \
+            --pull always \
+            -p 8080:8080 \
+            ghcr.io/${{ github.repository }}:latest
 
             # Wait for container to be healthy
             echo "⏳ Waiting for app to start..."
@@ -89,9 +94,10 @@ jobs:
             # Check if container is running
             if [ "$(docker ps -q -f name=php-template-app)" ]; then
               echo "✅ App container is running"
+              docker logs php-template-app --tail=10
             else
               echo "❌ App container failed to start"
-              docker compose logs app --tail=50
+              docker logs php-template-app
               exit 1
             fi
 
