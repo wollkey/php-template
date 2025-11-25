@@ -84,7 +84,7 @@ jobs:
             --name php-template-app \
             --restart unless-stopped \
             --pull always \
-            -p 8080:8080 \
+            -p 9000:9000 \
             ghcr.io/${{ github.repository }}:latest
 
             # Wait for container to be healthy
