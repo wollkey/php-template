@@ -14,10 +14,10 @@ ifeq (debug,$(findstring debug,$(MAKECMDGOALS)))
 endif
 
 ifdef CI
-    PHP := php
+    PHP := web
     COMPOSER := composer
 else
-    PHP := $(DC) exec -T $(DISABLE_XDEBUG) php
+    PHP := $(DC) exec -T $(DISABLE_XDEBUG) web
     COMPOSER := $(PHP) composer
 endif
 

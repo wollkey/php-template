@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-alpine AS base
+FROM dunglas/frankenphp:php8.4-alpine AS base
 
 RUN apk add --no-cache \
     git \
@@ -50,9 +50,11 @@ RUN deluser --remove-home www-data \
 
 USER www-data
 
-EXPOSE 9000
+EXPOSE 8080
+EXPOSE 443
+EXPOSE 443/udp
 
-CMD ["php-fpm"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
 FROM base AS production
 
@@ -69,6 +71,8 @@ RUN composer dump-autoload --optimize --classmap-authoritative
 
 USER www-data
 
-EXPOSE 9000
+EXPOSE 8080
+EXPOSE 443
+EXPOSE 443/udp
 
-CMD ["php-fpm"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
